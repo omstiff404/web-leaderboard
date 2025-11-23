@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Leaderboard</title>
+    
+    <!-- Favicon dari URL yang diberikan -->
+    <link rel="icon" type="image/jpeg" href="https://files.catbox.moe/ejl6ic.jpg">
+    
+    <!-- Share Preview Meta Tags -->
+    <meta property="og:title" content="TikTok Leaderboard - Top Creators">
+    <meta property="og:description" content="Lihat ranking creator TikTok terpopuler berdasarkan jumlah pengikut">
+    <meta property="og:image" content="https://files.catbox.moe/ejl6ic.jpg">
+    <meta property="og:url" content="https://omtiff-api.vercel.app">
+    <meta property="og:type" content="website">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="TikTok Leaderboard - Top Creators">
+    <meta name="twitter:description" content="Lihat ranking creator TikTok terpopuler berdasarkan jumlah pengikut">
+    <meta name="twitter:image" content="https://files.catbox.moe/ejl6ic.jpg">
+    
+    <meta name="description" content="Leaderboard TikTok creator terpopuler berdasarkan jumlah pengikut, likes, dan video">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+            padding: 20px;
+            color: #e2e8f0;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 30px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 20px; /* Kotak bundar */
+            overflow: hidden;
+            border: 4px solid; /* Border solid biasa */
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            position: relative;
+            border-color: #ffd600;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        /* Gradient border dengan pseudo-element */
+        .logo::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            background: linear-gradient(45deg, #ff6b6b, #ffa726, #ffee58, #66bb6a, #42a5f5, #ab47bc);
+            border-radius: 24px; /* Lebih besar dari border-radius logo */
+            z-index: -1;
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 16px; /* Sedikit lebih kecil dari border */
+        }
+
+        h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ff6b6b, #ffa726, #ffee58, #66bb6a, #42a5f5, #ab47bc, #ff6b6b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            background-size: 300% 300%;
+            animation: gradientText 8s ease infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes gradientText {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .refresh-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            padding: 8px 16px;
+            background: linear-gradient(45deg, #ff6b6b, #ffa726);
+            color: white;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .leaderboard-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .leaderboard {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+.leaderboard-header {
+    background: linear-gradient(-45deg, 
+        #ff6b6b, #ffa726, #ffee58, #66bb6a, #42a5f5, #9c27b0);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    padding: 25px 30px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+        .leaderboard-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .total-users {
+            font-weight: 600;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+
+        .user-list {
+            padding: 30px;
+            display: grid;
+            gap: 20px;
+        }
+
+        .user-item {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 25px;
+            align-items: center;
+            padding: 25px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .user-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-5px);
+        }
+
+        .user-item.first-place {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 255, 255, 0.05));
+            border: 2px solid #ffd700;
+        }
+
+        .user-item.second-place {
+            background: linear-gradient(135deg, rgba(192, 192, 192, 0.15), rgba(255, 255, 255, 0.05));
+            border: 2px solid #c0c0c0;
+        }
+
+        .user-item.third-place {
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.15), rgba(255, 255, 255, 0.05));
+            border: 2px solid #cd7f32;
+        }
+
+        .rank-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .rank {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #e2e8f0;
+            line-height: 1;
+        }
+
+        .first-place .rank {
+            color: #ffd700;
+        }
+
+        .second-place .rank {
+            color: #c0c0c0;
+        }
+
+        .third-place .rank {
+            color: #cd7f32;
+        }
+
+        .crown {
+            color: #ffd700;
+            font-size: 1.8rem;
+        }
+
+        .user-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 15px;
+        }
+
+        .avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 4px solid;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        /* Gradient border untuk avatar dengan pseudo-element */
+        .avatar::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border-radius: 24px;
+            z-index: -1;
+        }
+
+        .first-place .avatar {
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .first-place .avatar::before {
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+        }
+
+        .second-place .avatar {
+            border-color: #c0c0c0;
+            box-shadow: 0 0 15px rgba(192, 192, 192, 0.4);
+        }
+
+        .second-place .avatar::before {
+            background: linear-gradient(45deg, #c0c0c0, #e0e0e0, #c0c0c0);
+        }
+
+        .third-place .avatar {
+            border-color: #cd7f32;
+            box-shadow: 0 0 15px rgba(205, 127, 50, 0.4);
+        }
+
+        .third-place .avatar::before {
+            background: linear-gradient(45deg, #cd7f32, #e3964a, #cd7f32);
+        }
+
+        /* Border warna berbeda untuk user lainnya */
+        .user-item:nth-child(4) .avatar {
+            border-color: #ff6b6b;
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .user-item:nth-child(5) .avatar {
+            border-color: #4ecdc4;
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.4);
+        }
+
+        .user-item:nth-child(6) .avatar {
+            border-color: #45b7d1;
+            box-shadow: 0 0 15px rgba(69, 183, 209, 0.4);
+        }
+
+        .user-item:nth-child(7) .avatar {
+            border-color: #96ceb4;
+            box-shadow: 0 0 15px rgba(150, 206, 180, 0.4);
+        }
+
+        .user-item:nth-child(8) .avatar {
+            border-color: #feca57;
+            box-shadow: 0 0 15px rgba(254, 202, 87, 0.4);
+        }
+
+        .user-item:nth-child(9) .avatar {
+            border-color: #ff9ff3;
+            box-shadow: 0 0 15px rgba(255, 159, 243, 0.4);
+        }
+
+        .user-item:nth-child(10) .avatar {
+            border-color: #54a0ff;
+            box-shadow: 0 0 15px rgba(84, 160, 255, 0.4);
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .username-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .username {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #e2e8f0;
+        }
+
+        .first-place .username {
+            color: #ffd700;
+        }
+
+        .name {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .verified-badge {
+            color: #42a5f5;
+            font-size: 1.2rem;
+        }
+
+        .bio {
+            font-size: 0.95rem;
+            color: #64748b;
+            max-width: 400px;
+            line-height: 1.4;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+            max-width: 300px;
+            margin-top: 10px;
+        }
+
+        .stat {
+            background: linear-gradient(135deg, #ff6b6b, #ffa726);
+            padding: 15px 10px;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat:nth-child(2) {
+            background: linear-gradient(135deg, #42a5f5, #66bb6a);
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: white;
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 30px;
+            color: #94a3b8;
+            font-size: 1.2rem;
+        }
+
+        .loading i {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #ff6b6b;
+            animation: spin 1.5s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px 30px;
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 16px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .user-item {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 20px;
+            }
+
+            .rank-section {
+                flex-direction: row;
+                justify-content: center;
+                gap: 15px;
+            }
+
+            .rank {
+                font-size: 2rem;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <div class="logo" id="logo">
+                    <!-- Logo akan di-load dari config.js -->
+                </div>
+                <h1 id="appTitle">TikTok Leaderboard</h1>
+            </div>
+            <p class="subtitle" id="appSubtitle">Ranking Creator TikTok Terpopuler</p>
+            <div class="refresh-info">
+                <i class="fas fa-info-circle"></i>
+                <span>Refresh browser untuk update data</span>
+            </div>
+        </header>
+        
+        <div class="leaderboard-container">
+            <div class="leaderboard">
+                <div class="leaderboard-header">
+                    <h2><i class="fas fa-trophy"></i> <span id="leaderboardTitle">TOP CREATORS</span></h2>
+                </div>
+                
+                <div class="controls">
+                    <div class="total-users" id="totalUsers">
+                        <i class="fas fa-users"></i>
+                        <span>Memuat data...</span>
+                    </div>
+                </div>
+                
+                <div class="user-list" id="userList">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i><br>
+                        Memuat data leaderboard...
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p id="footerText">Data diambil dari TikTok API • Refresh browser untuk update data terbaru</p>
+        </footer>
+    </div>
+
+    <!-- Load config.js terlebih dahulu -->
+    <script src="config.js"></script>
+    <script>
+        let users = [];
+        const userList = document.getElementById('userList');
+        const totalUsers = document.getElementById('totalUsers');
+
+        // Load konfigurasi dari config.js
+        function loadConfig() {
+            document.getElementById('appTitle').textContent = appConfig.appTitle;
+            document.getElementById('appSubtitle').textContent = appConfig.appSubtitle;
+            document.getElementById('leaderboardTitle').textContent = appConfig.leaderboardTitle;
+            document.getElementById('footerText').textContent = appConfig.footerText;
+            
+            const logo = document.getElementById('logo');
+            if (appConfig.logoUrl) {
+                logo.innerHTML = `<img src="${appConfig.logoUrl}" alt="${appConfig.appTitle}">`;
+            } else {
+                logo.innerHTML = '<i class="fab fa-tiktok" style="font-size: 3rem; color: white;"></i>';
+            }
+        }
+
+        async function fetchUserData(username) {
+            try {
+                const response = await fetch(`https://api-faa.my.id/faa/tiktokstalk?username=${username}`);
+                const data = await response.json();
+                
+                if (data.status && data.result) {
+                    return data.result;
+                } else {
+                    throw new Error('Data tidak ditemukan');
+                }
+            } catch (error) {
+                console.error(`Error fetching data untuk ${username}:`, error);
+                return null;
+            }
+        }
+        
+        async function loadAllUsers() {
+            try {
+                userList.innerHTML = `
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i><br>
+                        Memuat data leaderboard...
+                    </div>
+                `;
+                
+                users = [];
+                totalUsers.innerHTML = `<i class="fas fa-users"></i> Memuat data...`;
+                
+                const promises = appConfig.tiktokUsernames.map(username => fetchUserData(username));
+                const results = await Promise.allSettled(promises);
+                
+                users = results
+                    .filter(result => result.status === 'fulfilled' && result.value !== null)
+                    .map(result => result.value);
+                
+                users.sort((a, b) => b.stats.followers - a.stats.followers);
+                
+                renderLeaderboard();
+                
+            } catch (error) {
+                userList.innerHTML = `
+                    <div class="error">
+                        <i class="fas fa-exclamation-triangle"></i><br>
+                        Gagal memuat data leaderboard. Coba refresh halaman.
+                    </div>
+                `;
+            }
+        }
+        
+        function renderLeaderboard() {
+            if (users.length === 0) {
+                userList.innerHTML = `
+                    <div class="loading">
+                        <i class="fas fa-search"></i><br>
+                        Tidak ada data yang berhasil diambil. Periksa koneksi atau username.
+                    </div>
+                `;
+                totalUsers.innerHTML = `<i class="fas fa-users"></i> 0 Users`;
+                return;
+            }
+            
+            userList.innerHTML = '';
+            totalUsers.innerHTML = `<i class="fas fa-users"></i> ${users.length} Creators`;
+            
+            users.forEach((user, index) => {
+                const rank = index + 1;
+                const userItem = document.createElement('div');
+                
+                let rankClass = '';
+                if (rank === 1) rankClass = 'first-place';
+                else if (rank === 2) rankClass = 'second-place';
+                else if (rank === 3) rankClass = 'third-place';
+                
+                userItem.className = `user-item ${rankClass}`;
+                
+                userItem.innerHTML = `
+                    <div class="rank-section">
+                        <div class="rank">${rank}</div>
+                        ${rank === 1 ? '<div class="crown"><i class="fas fa-crown"></i></div>' : ''}
+                    </div>
+                    <div class="user-content">
+                        <div class="avatar">
+                            <img src="${user.avatar}" alt="${user.name}" onerror="this.src='https://via.placeholder.com/90/1e293b/ff6b6b?text=TK'">
+                        </div>
+                        <div class="user-main">
+                            <div class="username-container">
+                                <div class="username">@${user.username}</div>
+                                ${user.verified ? '<span class="verified-badge"><i class="fas fa-check-circle"></i></span>' : ''}
+                            </div>
+                            <div class="name">${user.name}</div>
+                            <div class="bio">${user.bio || 'Tidak ada bio'}</div>
+                        </div>
+                        <div class="stats">
+                            <div class="stat">
+                                <div class="stat-value">${formatNumber(user.stats.followers)}</div>
+                                <div class="stat-label">Pengikut</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">${formatNumber(user.stats.likes)}</div>
+                                <div class="stat-label">Suka</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                userList.appendChild(userItem);
+            });
+        }
+        
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'Jt';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'Rb';
+            }
+            return num.toString();
+        }
+        
+        // Initialize aplikasi
+        window.addEventListener('DOMContentLoaded', function() {
+            loadConfig();
+            loadAllUsers();
+        });
+    </script>
+</body>
+</html>
