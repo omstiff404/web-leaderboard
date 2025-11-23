@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Leaderboard</title>
+    
+    <!-- Favicon dari URL yang diberikan -->
+    <link rel="icon" type="image/jpeg" href="https://files.catbox.moe/ejl6ic.jpg">
+    
+    <!-- Share Preview Meta Tags -->
+    <meta property="og:title" content="TikTok Leaderboard - Top Creators">
+    <meta property="og:description" content="Lihat ranking creator TikTok terpopuler berdasarkan jumlah pengikut">
+    <meta property="og:image" content="https://files.catbox.moe/ejl6ic.jpg">
+    <meta property="og:url" content="https://omtiff-api.vercel.app">
+    <meta property="og:type" content="website">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="TikTok Leaderboard - Top Creators">
+    <meta name="twitter:description" content="Lihat ranking creator TikTok terpopuler berdasarkan jumlah pengikut">
+    <meta name="twitter:image" content="https://files.catbox.moe/ejl6ic.jpg">
+    
+    <meta name="description" content="Leaderboard TikTok creator terpopuler berdasarkan jumlah pengikut, likes, dan video">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
+
+        :root {
+            /* Mode Terang (Default) - Warna Pelangi Lembut */
+            --bg-primary: linear-gradient(135deg, 
+                #ffebee 0%, /* Merah muda */
+                #fff3e0 16%, /* Oranye muda */
+                #f9fbe7 32%, /* Kuning muda */
+                #e8f5e8 48%, /* Hijau muda */
+                #e3f2fd 64%, /* Biru muda */
+                #f3e5f5 80%, /* Ungu muda */
+                #fce4ec 100% /* Pink muda */
+            );
+            --bg-secondary: rgba(255, 255, 255, 0.8);
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --bg-card-hover: rgba(255, 255, 255, 0.95);
+            --bg-header: linear-gradient(-45deg, 
+                #ffcdd2, #ffccbc, #fff9c4, #c8e6c9, 
+                #b3e5fc, #d1c4e9, #f8bbd0
+            );
+            --text-primary: #5d4037;
+            --text-secondary: #795548;
+            --text-accent: #7b1fa2;
+            --border-color: rgba(123, 31, 162, 0.2);
+            --shadow-color: rgba(123, 31, 162, 0.1);
+            --accent-color: #7b1fa2;
+            --accent-gradient: linear-gradient(135deg, 
+                #ff5252, #ff9800, #ffeb3b, #4caf50, 
+                #2196f3, #9c27b0, #e91e63
+            );
+        }
+
+        body.dark-theme {
+            /* Mode Gelap - Warna Pelangi Gelap */
+            --bg-primary: linear-gradient(135deg, 
+                #4a148c 0%, /* Ungu tua */
+                #311b92 16%, /* Indigo */
+                #1a237e 32%, /* Biru tua */
+                #004d40 48%, /* Hijau tua */
+                #33691e 64%, /* Hijau gelap */
+                #827717 80%, /* Zaitun */
+                #bf360c 100% /* Merah tua */
+            );
+            --bg-secondary: rgba(26, 35, 126, 0.4);
+            --bg-card: rgba(38, 50, 56, 0.7);
+            --bg-card-hover: rgba(38, 50, 56, 0.9);
+            --bg-header: linear-gradient(-45deg, 
+                #7b1fa2, #512da8, #303f9f, #00796b,
+                #388e3c, #f57c00, #d32f2f
+            );
+            --text-primary: #f3e5f5;
+            --text-secondary: #d1c4e9;
+            --text-accent: #ffab40;
+            --border-color: rgba(255, 171, 64, 0.3);
+            --shadow-color: rgba(255, 171, 64, 0.2);
+            --accent-color: #ffab40;
+            --accent-gradient: linear-gradient(135deg, 
+                #ff6d00, #ffab00, #ffd600, #64dd17, 
+                #00b0ff, #7c4dff, #ff4081
+            );
+        }
+
+        body {
+            background: var(--bg-primary);
+            background-size: 400% 400%;
+            animation: gradientBG 30s ease infinite;
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-primary);
+            transition: all 0.5s ease;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 30px;
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow-color);
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 3px solid;
+            box-shadow: 
+                0 0 20px var(--shadow-color),
+                0 0 40px rgba(123, 31, 162, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-secondary);
+            position: relative;
+            border-color: var(--accent-color);
+        }
+
+        .logo::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: var(--accent-gradient);
+            border-radius: 22px;
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 17px;
+        }
+
+        h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            background-size: 300% 300%;
+            animation: gradientText 8s ease infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes gradientText {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .leaderboard-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .leaderboard {
+            background: var(--bg-card);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border-color);
+        }
+
+        .leaderboard-header {
+            background: var(--bg-header);
+            background-size: 400% 400%;
+            animation: gradientShift 20s ease infinite;
+            padding: 25px 30px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .leaderboard-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            background: rgba(255, 255, 255, 0.3);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        body.dark-theme .controls {
+            background: rgba(38, 50, 56, 0.4);
+        }
+
+        .total-users {
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+
+        /* STYLE SATU BARIS */
+        .user-list {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-radius: 16px;
+            background: var(--bg-card);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        .user-item:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-2px);
+            border-color: var(--border-color);
+            box-shadow: 0 8px 20px var(--shadow-color);
+        }
+
+        /* AVATAR DAN RANKING DI KIRI */
+        .rank-avatar-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 110px;
+        }
+
+        .rank {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-secondary);
+            width: 35px;
+            text-align: center;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 45px;
+            height: 45px;
+            flex-shrink: 0;
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid var(--accent-color);
+            background: var(--bg-secondary);
+            box-shadow: 
+                0 0 10px var(--shadow-color),
+                0 0 20px rgba(123, 31, 162, 0.05);
+        }
+
+        /* MAHKOTA KUNING DI ATAS AVATAR */
+        .crown {
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffd700;
+            font-size: 1.3rem;
+            text-shadow: 0 2px 6px rgba(255, 215, 0, 0.4);
+            z-index: 10;
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* NAMA DI TENGAH */
+        .name-section {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+            flex: 1;
+            margin: 0 15px;
+        }
+
+        .name {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .verified-badge {
+            color: var(--accent-color);
+            font-size: 1rem;
+            margin-left: 6px;
+        }
+
+        /* STATS DI KANAN - LIKES DISEMBUNYIKAN DI MOBILE */
+        .stats-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-shrink: 0;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            min-width: 70px;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Likes disembunyikan di mobile */
+        .likes-stat {
+            display: flex;
+        }
+
+        /* MODAL DETAIL PROFILE */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, 
+                #ffebee 0%, #fff3e0 25%, #f9fbe7 50%, 
+                #e8f5e8 75%, #e3f2fd 100%);
+            border-radius: 24px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            position: relative;
+            backdrop-filter: blur(15px);
+        }
+
+        body.dark-theme .modal-content {
+            background: linear-gradient(135deg, 
+                #4a148c 0%, #311b92 25%, #1a237e 50%, 
+                #004d40 75%, #33691e 100%);
+        }
+
+        .modal-header {
+            background: var(--bg-header);
+            padding: 25px 30px;
+            border-radius: 22px 22px 0 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .modal-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 20px;
+            border: 3px solid #ffd700;
+            margin: 0 auto 15px;
+            overflow: hidden;
+            box-shadow: 
+                0 0 15px rgba(255, 215, 0, 0.3),
+                0 0 30px rgba(255, 215, 0, 0.1);
+        }
+
+        .modal-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal-name {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .modal-username {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .modal-bio {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 30px;
+            border-left: 3px solid var(--accent-color);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--text-primary);
+            backdrop-filter: blur(10px);
+        }
+
+        body.dark-theme .modal-bio {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            padding: 20px 30px;
+        }
+
+        .modal-stat {
+            background: rgba(123, 31, 162, 0.1);
+            padding: 20px 15px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-stat:hover {
+            transform: translateY(-3px);
+            background: rgba(123, 31, 162, 0.15);
+        }
+
+        body.dark-theme .modal-stat {
+            background: rgba(255, 171, 64, 0.1);
+        }
+
+        body.dark-theme .modal-stat:hover {
+            background: rgba(255, 171, 64, 0.15);
+        }
+
+        .modal-stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+
+        .modal-stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-info {
+            padding: 20px 30px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .verified-true {
+            color: #ffd700;
+            font-weight: 600;
+        }
+
+        .verified-false {
+            color: var(--text-secondary);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 30px;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        .loading i {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+            animation: spin 1.5s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px 30px;
+            color: var(--accent-color);
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 30px;
+        }
+
+        /* RESPONSIVE - SEMBUNYIKAN LIKES DI MOBILE */
+        @media (max-width: 768px) {
+            .user-item {
+                padding: 15px 18px;
+                gap: 10px;
+            }
+
+            .rank-avatar-section {
+                min-width: 90px;
+                gap: 10px;
+            }
+
+            .rank {
+                font-size: 1.5rem;
+                width: 30px;
+            }
+
+            .avatar-container {
+                width: 40px;
+                height: 40px;
+            }
+
+            .crown {
+                font-size: 1.1rem;
+                top: -5px;
+            }
+
+            .name-section {
+                flex: 1;
+                margin: 0 10px;
+            }
+
+            .name {
+                font-size: 1.1rem;
+            }
+
+            .stats-section {
+                gap: 0;
+            }
+
+            /* SEMBUNYIKAN LIKES DI MOBILE */
+            .likes-stat {
+                display: none !important;
+            }
+
+            .stat {
+                min-width: 60px;
+            }
+
+            .stat-value {
+                font-size: 1rem;
+            }
+
+            .stat-label {
+                font-size: 0.65rem;
+            }
+
+            h1 {
+                font-size: 2.2rem;
+            }
+
+            .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .modal-content {
+                margin: 10px;
+                max-width: calc(100% - 20px);
+            }
+
+            .modal-stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                padding: 15px 20px;
+            }
+
+            .modal-header {
+                padding: 20px 25px;
+            }
+
+            .modal-bio {
+                margin: 10px 20px;
+            }
+
+            .modal-info {
+                padding: 15px 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .user-item {
+                padding: 12px 15px;
+            }
+
+            .rank {
+                font-size: 1.3rem;
+            }
+
+            .avatar-container {
+                width: 35px;
+                height: 35px;
+            }
+
+            .name {
+                font-size: 1rem;
+            }
+
+            .stat {
+                min-width: 55px;
+            }
+
+            .stat-value {
+                font-size: 0.9rem;
+            }
+
+            .modal-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-sun"></i>
+                <span>Mode Terang</span>
+            </button>
+            <div class="logo-container">
+                <div class="logo" id="logo">
+                    <!-- Logo akan di-load dari config.js -->
+                </div>
+                <h1 id="appTitle">TikTok Leaderboard</h1>
+            </div>
+            <p class="subtitle" id="appSubtitle">Ranking Creator TikTok Terpopuler</p>
+        </header>
+        
+        <div class="leaderboard-container">
+            <div class="leaderboard">
+                <div class="leaderboard-header">
+                    <h2><i class="fas fa-trophy"></i> <span id="leaderboardTitle">TOP CREATORS</span></h2>
+                </div>
+                
+                <div class="controls">
+                    <div class="total-users" id="totalUsers">
+                        <i class="fas fa-users"></i>
+                        <span>Memuat data...</span>
+                    </div>
+                </div>
+                
+                <div class="user-list" id="userList">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i><br>
+                        Memuat data leaderboard...
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p id="footerText">Data diambil dari TikTok API</p>
+        </footer>
+    </div>
+
+    <!-- Modal Detail Profile -->
+    <div class="modal" id="profileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close-modal" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="modal-avatar" id="modalAvatar">
+                    <img src="" alt="Profile Avatar">
+                </div>
+                <h2 class="modal-name" id="modalName"></h2>
+                <p class="modal-username" id="modalUsername"></p>
+            </div>
+            
+            <div class="modal-bio" id="modalBio">
+                <!-- Bio akan diisi oleh JavaScript -->
+            </div>
+            
+            <div class="modal-stats" id="modalStats">
+                <!-- Stats akan diisi oleh JavaScript -->
+            </div>
+            
+            <div class="modal-info">
+                <div class="info-item">
+                    <span class="info-label">ID Profile:</span>
+                    <span class="info-value" id="modalId"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Verified:</span>
+                    <span class="info-value" id="modalVerified"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Region:</span>
+                    <span class="info-value" id="modalRegion"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Private Account:</span>
+                    <span class="info-value" id="modalPrivate"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Join Date:</span>
+                    <span class="info-value" id="modalJoinDate"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load config.js terlebih dahulu -->
+    <script src="config.js"></script>
+    <script>
+        let users = [];
+        const userList = document.getElementById('userList');
+        const totalUsers = document.getElementById('totalUsers');
+        const profileModal = document.getElementById('profileModal');
+        const closeModal = document.getElementById('closeModal');
+        const themeToggle = document.getElementById('themeToggle');
+
+        // Fungsi untuk mendapatkan warna berdasarkan peringkat
+        function getRankColor(rank) {
+            const rainbowColors = [
+                '#ffd700', // Emas - Rank 1
+                '#c0c0c0', // Perak - Rank 2
+                '#cd7f32', // Perunggu - Rank 3
+                '#ff5252', // Merah - Rank 4
+                '#ff9800', // Oranye - Rank 5
+                '#ffeb3b', // Kuning - Rank 6
+                '#4caf50', // Hijau - Rank 7
+                '#2196f3', // Biru - Rank 8
+                '#9c27b0', // Ungu - Rank 9
+                '#e91e63', // Pink - Rank 10
+                '#00bcd4', // Cyan - Rank 11
+                '#8bc34a', // Light Green - Rank 12
+                '#ffc107', // Amber - Rank 13
+                '#795548', // Brown - Rank 14
+                '#607d8b'  // Blue Grey - Rank 15
+            ];
+            
+            // Jika rank lebih dari jumlah warna, gunakan warna terakhir
+            return rainbowColors[Math.min(rank - 1, rainbowColors.length - 1)];
+        }
+
+        // Load konfigurasi dari config.js
+        function loadConfig() {
+            document.getElementById('appTitle').textContent = appConfig.appTitle;
+            document.getElementById('appSubtitle').textContent = appConfig.appSubtitle;
+            document.getElementById('leaderboardTitle').textContent = appConfig.leaderboardTitle;
+            document.getElementById('footerText').textContent = appConfig.footerText;
+            
+            const logo = document.getElementById('logo');
+            if (appConfig.logoUrl) {
+                logo.innerHTML = `<img src="${appConfig.logoUrl}" alt="${appConfig.appTitle}">`;
+            } else {
+                logo.innerHTML = '<i class="fab fa-tiktok" style="font-size: 3rem; color: var(--text-secondary);"></i>';
+            }
+        }
+
+        // Fungsi untuk toggle tema
+        function toggleTheme() {
+            const body = document.body;
+            const isDark = body.classList.contains('dark-theme');
+            
+            if (isDark) {
+                body.classList.remove('dark-theme');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i><span>Mode Terang</span>';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.add('dark-theme');
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i><span>Mode Gelap</span>';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Load tema dari localStorage
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i><span>Mode Gelap</span>';
+            }
+        }
+
+        async function fetchUserData(username) {
+            try {
+                const response = await fetch(`https://api-faa.my.id/faa/tiktokstalk?username=${username}`);
+                const data = await response.json();
+                
+                if (data.status && data.result) {
+                    return data.result;
+                } else {
+                    throw new Error('Data tidak ditemukan');
+                }
+            } catch (error) {
+                console.error(`Error fetching data untuk ${username}:`, error);
+                return null;
+            }
+        }
+        
+        async function loadAllUsers() {
+            try {
+                userList.innerHTML = `
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i><br>
+                        Memuat data leaderboard...
+                    </div>
+                `;
+                
+                users = [];
+                totalUsers.innerHTML = `<i class="fas fa-users"></i> Memuat data...`;
+                
+                // Gunakan username dari config.js
+                const promises = appConfig.tiktokUsernames.map(username => fetchUserData(username));
+                const results = await Promise.allSettled(promises);
+                
+                users = results
+                    .filter(result => result.status === 'fulfilled' && result.value !== null)
+                    .map(result => result.value);
+                
+                users.sort((a, b) => b.stats.followers - a.stats.followers);
+                
+                renderLeaderboard();
+                
+            } catch (error) {
+                userList.innerHTML = `
+                    <div class="error">
+                        <i class="fas fa-exclamation-triangle"></i><br>
+                        Gagal memuat data leaderboard. Coba refresh halaman.
+                    </div>
+                `;
+            }
+        }
+        
+        function renderLeaderboard() {
+            if (users.length === 0) {
+                userList.innerHTML = `
+                    <div class="loading">
+                        <i class="fas fa-search"></i><br>
+                        Tidak ada data yang berhasil diambil. Periksa koneksi atau username.
+                    </div>
+                `;
+                totalUsers.innerHTML = `<i class="fas fa-users"></i> 0 Users`;
+                return;
+            }
+            
+            userList.innerHTML = '';
+            totalUsers.innerHTML = `<i class="fas fa-users"></i> ${users.length} Creators`;
+            
+            users.forEach((user, index) => {
+                const rank = index + 1;
+                const userItem = document.createElement('div');
+                const rankColor = getRankColor(rank);
+                
+                userItem.className = `user-item`;
+                userItem.setAttribute('data-user-index', index);
+                
+                // Terapkan warna secara dinamis
+                userItem.style.background = `linear-gradient(135deg, ${rankColor}15, ${rankColor}05)`;
+                userItem.style.border = `1px solid ${rankColor}30`;
+                
+                userItem.innerHTML = `
+                    <div class="rank-avatar-section">
+                        <div class="rank" style="color: ${rankColor}">${rank}</div>
+                        <div class="avatar-container">
+                            <div class="avatar" style="border-color: ${rankColor}; box-shadow: 0 0 10px ${rankColor}30, 0 0 20px ${rankColor}10">
+                                <img src="${user.avatar}" alt="${user.name}" onerror="this.src='https://via.placeholder.com/45/350000/cccccc?text=TK'">
+                            </div>
+                            ${rank === 1 ? '<div class="crown"><i class="fas fa-crown"></i></div>' : ''}
+                        </div>
+                    </div>
+                    <div class="name-section">
+                        <div class="name" style="color: ${rankColor}">
+                            ${user.name}
+                            ${user.verified ? '<span class="verified-badge"><i class="fas fa-check-circle"></i></span>' : ''}
+                        </div>
+                    </div>
+                    <div class="stats-section">
+                        <div class="stat">
+                            <div class="stat-value" style="color: ${rankColor}">${formatNumber(user.stats.followers)}</div>
+                            <div class="stat-label">Followers</div>
+                        </div>
+                        <div class="stat likes-stat">
+                            <div class="stat-value" style="color: ${rankColor}">${formatNumber(user.stats.likes)}</div>
+                            <div class="stat-label">Likes</div>
+                        </div>
+                    </div>
+                `;
+                
+                // Tambahkan event listener untuk menampilkan modal
+                userItem.addEventListener('click', () => {
+                    showProfileModal(user);
+                });
+                
+                userList.appendChild(userItem);
+            });
+        }
+        
+        function showProfileModal(user) {
+            // Isi data modal
+            document.getElementById('modalAvatar').querySelector('img').src = user.avatar;
+            document.getElementById('modalName').textContent = user.name;
+            document.getElementById('modalUsername').textContent = `@${user.username}`;
+            document.getElementById('modalBio').textContent = user.bio || 'Tidak ada bio';
+            document.getElementById('modalId').textContent = user.id;
+            document.getElementById('modalVerified').innerHTML = user.verified ? 
+                '<span class="verified-true">✓ Verified</span>' : 
+                '<span class="verified-false">Not Verified</span>';
+            document.getElementById('modalRegion').textContent = user.region.toUpperCase();
+            document.getElementById('modalPrivate').textContent = user.private ? 'Yes' : 'No';
+            
+            // Format join date
+            const joinDate = new Date(user.create_time * 1000);
+            document.getElementById('modalJoinDate').textContent = joinDate.toLocaleDateString('id-ID');
+            
+            // Isi stats
+            const modalStats = document.getElementById('modalStats');
+            modalStats.innerHTML = `
+                <div class="modal-stat">
+                    <div class="modal-stat-value">${formatNumber(user.stats.followers)}</div>
+                    <div class="modal-stat-label">Followers</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-value">${formatNumber(user.stats.following)}</div>
+                    <div class="modal-stat-label">Following</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-value">${formatNumber(user.stats.likes)}</div>
+                    <div class="modal-stat-label">Likes</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-value">${formatNumber(user.stats.videos)}</div>
+                    <div class="modal-stat-label">Videos</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-value">${formatNumber(user.stats.friend)}</div>
+                    <div class="modal-stat-label">Friends</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-value">${user.recent_view}</div>
+                    <div class="modal-stat-label">Recent Views</div>
+                </div>
+            `;
+            
+            // Tampilkan modal
+            profileModal.style.display = 'flex';
+        }
+        
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'Jt';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'Rb';
+            }
+            return num.toString();
+        }
+        
+        // Event listeners untuk modal
+        closeModal.addEventListener('click', () => {
+            profileModal.style.display = 'none';
+        });
+        
+        profileModal.addEventListener('click', (e) => {
+            if (e.target === profileModal) {
+                profileModal.style.display = 'none';
+            }
+        });
+        
+        // Event listener untuk toggle tema
+        themeToggle.addEventListener('click', toggleTheme);
+        
+        // Initialize aplikasi
+        window.addEventListener('DOMContentLoaded', function() {
+            loadConfig();
+            loadTheme();
+            loadAllUsers();
+        });
+    </script>
+</body>
+</html>
